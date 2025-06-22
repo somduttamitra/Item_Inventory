@@ -6,11 +6,19 @@ import com.ecommerce.demo.Model.Supply;
 import com.ecommerce.demo.Repository.ItemRepository;
 import com.ecommerce.demo.Repository.ReservationRepository;
 import com.ecommerce.demo.Repository.SupplyRepository;
-import jakarta.persistence.Cacheable;
 import jakarta.transaction.Transactional;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -19,16 +27,30 @@ public class ItemServiceImpl implements ItemService {
     private ItemRepository itemRepository;
     private ReservationRepository reservationRepository;
     private SupplyRepository supplyRepository;
+    private CacheManager cacheManager;
 
     public ItemServiceImpl(ItemRepository itemRepository,
                            ReservationRepository reservationRepository,
-                           SupplyRepository supplyRepository){
+                           SupplyRepository supplyRepository,
+                           CacheManager cacheManager){
         this.itemRepository= itemRepository;
         this.reservationRepository=reservationRepository;
         this.supplyRepository=supplyRepository;
+        this.cacheManager=cacheManager;
     }
+
+    public Item addNewItem(Item i) {
+        return itemRepository.save(i);
+    }
+
+    @Cacheable
+    public List<Item> getAllItems(){
+        return itemRepository.findAll();
+    }
+
     @Override
     @Transactional
+    @CacheEvict(value = "itemQuantityCache", key = "#itemId")
     public Supply supplyItem(Long itemId, int quantity){
 
         Optional<Item> i= itemRepository.findById(itemId);
@@ -53,7 +75,7 @@ public class ItemServiceImpl implements ItemService {
     }
     @Override
     @Transactional
-
+    @CacheEvict(value = "itemQuantityCache", key = "#itemId")
     public Reservation reserveItem (Long itemId, int quantity){
         Optional<Item> i= itemRepository.findById(itemId);
         if(i.isEmpty()){
@@ -95,6 +117,7 @@ public class ItemServiceImpl implements ItemService {
                 reservation.setStatus("Cancelled");
                 Item item = reservation.getItem();
                 item.setReservedQuantity(item.getReservedQuantity()-reservation.getQuantity());
+                cacheManager.getCache("itemQuantityCache").evict(item.getId());
                 return true;
             }
         }
@@ -103,6 +126,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
+    @Cacheable(value = "itemQuantityCache", key = "#itemId")
     public Integer getAvailableQuantity(Long itemId){
         Optional<Item> i = itemRepository.findById(itemId);
         if(i.isEmpty()){

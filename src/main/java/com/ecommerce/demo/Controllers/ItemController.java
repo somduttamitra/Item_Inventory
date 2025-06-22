@@ -31,15 +31,13 @@ public class ItemController {
 
     @PostMapping("/addItem")
     public ResponseEntity<String> add(@RequestBody Item i) {
-
-        Item res =itemRepository.save(i);
+        Item res =itemService.addNewItem(i);
         return new ResponseEntity<>("item created with id: "+res.getId(),HttpStatus.OK);
-
     }
 
     @GetMapping("/getAll")
     public List<Item> getAllItems(){
-        return itemRepository.findAll();
+        return itemService.getAllItems();
     }
 
     @PostMapping("/supply")
