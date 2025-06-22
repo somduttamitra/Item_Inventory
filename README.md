@@ -4,6 +4,7 @@ A simple Spring Boot REST API to manage item inventory, including adding items, 
 
 ## Table of Contents
 - [Architecture](#architecture)
+- [ER Diagram](#er-diagram)
 - [Prerequisites](#prerequisites)
 - [How to Run](#how-to-run)
 - [API Endpoints](#api-endpoints)
@@ -22,6 +23,14 @@ This project follows a standard 3-tier architecture for a Spring Boot applicatio
 -   **Repository (`ItemRepository.java`)**: The data access layer. It communicates directly with the database (e.g., H2, MySQL, PostgreSQL) to perform CRUD (Create, Read, Update, Delete) operations on the data models.
 
 This separation of concerns makes the application modular, easier to test, and maintain.
+
+---
+
+## ER Diagram
+
+The following diagram illustrates the database schema and relationships between the core entities.
+
+![Entity Relationship Diagram](erdiagram.png)
 
 ---
 
